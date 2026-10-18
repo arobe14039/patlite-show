@@ -6,7 +6,7 @@ import { addClip, deletePreset, studio, useStudio } from "@/lib/show/studio";
 import { EFFECTS, SHOW_SCHEMA, SHOW_VERSION, type Clip, type EffectType } from "@/lib/show/types";
 import { makeClip } from "@/lib/show/engine";
 import { runShow, stopShow, useDevice } from "@/lib/device/bridge";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 function playOnTower(effect: EffectType, preset?: Partial<Clip>) {
   const { id: _id, start: _s, ...rest } = preset ?? {};
@@ -17,11 +17,23 @@ function playOnTower(effect: EffectType, preset?: Partial<Clip>) {
 function PlayButton({ id, effect, preset }: { id: string; effect: EffectType; preset?: Partial<Clip> }) {
   const running = useDevice((s) => s.showRunning);
   const [mine, setMine] = useState(false);
-  const active = running && mine;
-  return active ? (
-    <Button size="sm" variant="live" onClick={() => { void stopShow(); setMine(false); }}><Square /> Stop</Button>
+  const looping = useRef(false);
+  const stop = () => { looping.current = false; setMine(false); void stopShow(); };
+  const play = async () => {
+    looping.current = true;
+    setMine(true);
+    // Loop until Stop is pressed (or a command fails).
+    while (looping.current) {
+      const r = await playOnTower(effect, preset);
+      if (!r.ok) break;
+    }
+    looping.current = false;
+    setMine(false);
+  };
+  return mine ? (
+    <Button size="sm" variant="live" onClick={stop}><Square /> Stop</Button>
   ) : (
-    <Button size="sm" variant="glow" disabled={running} aria-label={`Play ${id}`} onClick={async () => { setMine(true); await playOnTower(effect, preset); setMine(false); }}><Play /> Play</Button>
+    <Button size="sm" variant="glow" disabled={running} aria-label={`Play ${id}`} onClick={play}><Play /> Play</Button>
   );
 }
 
