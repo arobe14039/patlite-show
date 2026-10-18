@@ -2,7 +2,7 @@
 
 ## Install
 1. Push this project to GitHub (the repository must be **public** so Home Assistant can clone it).
-2. Replace every `REPLACE_ME` in `repository.yaml`, `patlite_studio/config.yaml` and `patlite_studio/build.yaml` with your GitHub user/repo.
+2. The repository URL is set in `patlite_studio/Dockerfile` (`REPO_URL`); change it there if you fork.
 3. In Home Assistant: **Settings → Add-ons → Add-on Store → ⋮ → Repositories**, add your repository URL.
 4. Install **PATLITE Light Show Studio**, set `device_host` to the tower's IP, start it, and click **Open Web UI** (port 8099).
 
