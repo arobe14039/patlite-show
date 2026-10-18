@@ -38,7 +38,7 @@ export const DEFAULT_SETTINGS: DeviceSettings = {
   buzzerIntermittent: "2",
   buzzerContinuous: "1",
   timeoutMs: 3000,
-  intervalMs: 300,
+  intervalMs: 600,
   safeState: "allOff",
   failurePolicy: "stop",
   apiVerified: false,
@@ -118,7 +118,22 @@ interface Result { ok: boolean; status: number | null; ms: number; error?: strin
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-async function request(kind: LogEntry["kind"], path: string, query: Record<string, string>, summary: string): Promise<Result> {
+// One command at a time, with a quiet gap after each answer, so the tower's
+// small web server is never handed overlapping or back-to-back connections.
+const MIN_GAP_MS = 150;
+let chain: Promise<unknown> = Promise.resolve();
+let lastDone = 0;
+function request(kind: LogEntry["kind"], path: string, query: Record<string, string>, summary: string): Promise<Result> {
+  const run = chain.then(async () => {
+    const gap = MIN_GAP_MS - (performance.now() - lastDone);
+    if (gap > 0) await sleep(gap);
+    try { return await rawRequest(kind, path, query, summary); } finally { lastDone = performance.now(); }
+  });
+  chain = run.catch(() => undefined);
+  return run;
+}
+
+async function rawRequest(kind: LogEntry["kind"], path: string, query: Record<string, string>, summary: string): Promise<Result> {
   const s = device.get().settings;
   const qs = new URLSearchParams(query).toString();
   const shown = `${s.protocol}://${s.ip}${s.port ? `:${s.port}` : ""}${path}${qs ? `?${qs}` : ""}`;
@@ -172,7 +187,7 @@ async function sendState(state: TowerState, kind: LogEntry["kind"], label: strin
 
 // The tower has no verified flash command, so flash/pulse are made by toggling
 // the tier on and off from here. Flash = 0.5s on/off, pulse = 1s on/off.
-const PATTERN_TICK_MS = 500;
+const PATTERN_TICK_MS = 700;
 let patternToken = 0;
 
 function controlState(cmd: ControlCmd, tick: number): TowerState {
@@ -233,6 +248,9 @@ export async function runShow(show: Show): Promise<Result> {
     const wait = step.at - (performance.now() - t0);
     if (wait > 0) await sleep(wait);
     if (token !== runToken) return first ?? { ok: true, status: null, ms: 0 };
+    // Running behind? Drop this step if the next one is already due, instead of piling up.
+    const next = steps[i + 1];
+    if (next && next.at <= performance.now() - t0) continue;
     const r = await sendState({ tiers: step.tiers, flash: false, buzzer: step.buzzer }, "show", `Step ${i + 1}/${steps.length} @ ${(step.at / 1000).toFixed(2)}s`);
     first ??= r;
     if (token !== runToken) return r;
