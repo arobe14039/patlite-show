@@ -235,12 +235,15 @@ const safeState = (): TowerState => ({
 
 let runToken = 0;
 
-export async function runShow(show: Show): Promise<Result> {
+export async function runShow(show: Show, opts: { loop?: boolean } = {}): Promise<Result> {
   const token = ++runToken;
   patternToken++;
   const s = device.get().settings;
   // Never change the tower faster than once per second, whatever the saved interval says.
   const steps = compileShow(show, Math.max(TOWER_MIN_INTERVAL_MS, s.intervalMs));
+  // When looping, skip the closing "all off" step so lights hold their last state into the next pass.
+  const endAt = steps[steps.length - 1]?.at ?? 0;
+  if (opts.loop && steps.length > 1) steps.pop();
   const total = steps[steps.length - 1]?.at ?? 0;
   device.set({ showRunning: true, showProgress: 0 });
   log({ kind: "show", url: "-", summary: `Start "${show.name}" — ${steps.length} steps over ${(total / 1000).toFixed(1)}s`, status: null, ok: true, ms: null });
@@ -264,6 +267,9 @@ export async function runShow(show: Show): Promise<Result> {
       return r;
     }
   }
+  // Hold the last state for its full time before the next loop pass begins.
+  const rest = endAt - (performance.now() - t0);
+  if (opts.loop && rest > 0) await sleep(rest);
   record(`Show "${show.name}" finished`, first ?? { ok: true, status: null, ms: 0 });
   device.set({ showRunning: false });
   return first ?? { ok: true, status: null, ms: 0 };
