@@ -15,12 +15,12 @@ describe("animation engine", () => {
     const s = show([makeClip("solid", { start: 0, duration: 1000, tiers: [1, 2, 3, 4, 5], color: "#ff0000" })]);
     const steps = compileShow(s, 250);
     expect(steps).toHaveLength(2);
-    expect(steps[0].tiers).toEqual(["red", "red", "red", "red", "red"]);
-    expect(steps[1].tiers).toEqual([null, null, null, null, null]);
+    expect(steps[0]!.tiers).toEqual(["red", "red", "red", "red", "red"]);
+    expect(steps[1]!.tiers).toEqual([null, null, null, null, null]);
   });
   it("flash count stops after N flashes", () => {
     const s = show([makeClip("flash", { start: 0, duration: 5000, tiers: [1], speed: 100, count: 2 })]);
-    expect(frameAt(s, 250).tiers[0].on).toBe(true);
-    expect(frameAt(s, 450).tiers[0].on).toBe(false);
+    expect(frameAt(s, 250).tiers[0]!.on).toBe(true);
+    expect(frameAt(s, 450).tiers[0]!.on).toBe(false);
   });
 });
