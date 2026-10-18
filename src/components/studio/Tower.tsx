@@ -2,7 +2,7 @@ import type { BuzzerMode, TierState } from "@/lib/show/types";
 import { cn } from "@/lib/utils";
 
 interface Props {
-  tiers: TierState[]; // index 0 = tier 1 (bottom)
+  tiers: TierState[]; // index 0 = tier 1 (top)
   buzzer?: BuzzerMode;
   selected?: number[];
   onSelectTier?: (tier: number, additive: boolean) => void;
@@ -13,7 +13,7 @@ interface Props {
 export function Tower({ tiers, buzzer = "off", selected = [], onSelectTier, size = "lg", label }: Props) {
   const w = size === "lg" ? 128 : size === "md" ? 72 : 28;
   const h = size === "lg" ? 58 : size === "md" ? 30 : 9;
-  const order = [5, 4, 3, 2, 1];
+  const order = [1, 2, 3, 4, 5]; // tier 1 is the top light
   return (
     <div className="flex flex-col items-center select-none">
       {/* cap */}

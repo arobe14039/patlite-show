@@ -66,7 +66,7 @@ function Live() {
       <div className="grid gap-6 lg:grid-cols-[1fr_260px]">
         <div className="space-y-2 rounded-lg border border-border bg-panel p-4">
           <div className="label-xs mb-2">Tier controls (top to bottom)</div>
-          {[...tiers].reverse().map((t) => (
+          {tiers.map((t) => (
             <div key={t.tier} className="flex flex-wrap items-center gap-3 rounded-md border border-border bg-background/50 p-2">
               <span className="w-14 font-mono text-xs text-muted-foreground">TIER {t.tier}</span>
               <div className="flex overflow-hidden rounded-md border border-border">

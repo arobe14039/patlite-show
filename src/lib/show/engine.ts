@@ -36,7 +36,7 @@ function hash(a: number, b: number) {
 
 /** Evaluate one clip for one tier at local time t (ms from clip start). */
 export function evalClip(c: Clip, t: number, tier: number): TierState {
-  const sorted = [...(c.effect === "allOn" || c.effect === "allOff" ? [1, 2, 3, 4, 5] : c.tiers)].sort((a, b) => a - b);
+  const sorted = [...(c.effect === "allOn" || c.effect === "allOff" ? [1, 2, 3, 4, 5] : c.tiers)].sort((a, b) => b - a); // "up" runs bottom (tier 5) to top (tier 1)
   if (c.direction === "down") sorted.reverse();
   const idx = Math.max(0, sorted.indexOf(tier));
   const n = Math.max(1, sorted.length);
