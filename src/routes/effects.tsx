@@ -13,7 +13,7 @@ function playOnTower(effect: EffectType, preset?: Partial<Clip>) {
   const clip = makeClip(effect, { ...rest, start: 0, duration: preset?.duration ?? 6000, transition: "cut" });
   // Slow every effect down to one change per second so the tower keeps up.
   clip.speed = Math.max(1000, clip.speed);
-  return runShow({ schema: SHOW_SCHEMA, version: SHOW_VERSION, id: "preview", name: clip.name, description: "", clips: [clip], loop: false, updatedAt: 0 });
+  return runShow({ schema: SHOW_SCHEMA, version: SHOW_VERSION, id: "preview", name: clip.name, description: "", clips: [clip], loop: false, updatedAt: 0 }, { loop: true });
 }
 
 function PlayButton({ id, effect, preset }: { id: string; effect: EffectType; preset?: Partial<Clip> }) {
