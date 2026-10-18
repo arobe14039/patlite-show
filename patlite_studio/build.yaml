@@ -2,6 +2,5 @@ build_from:
   amd64: node:22-alpine
   aarch64: node:22-alpine
 args:
-  # The add-on builds the app from this repository's source.
-  REPO_URL: https://github.com/REPLACE_ME/REPLACE_ME.git
+  REPO_URL: https://github.com/arobe14039/patlite-show.git
   REPO_REF: main
