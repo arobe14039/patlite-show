@@ -43,7 +43,7 @@ export const Route = createFileRoute("/api/device")({
         const ctrl = new AbortController();
         const timer = setTimeout(() => ctrl.abort(), body.timeoutMs);
         try {
-          const res = await fetch(url, { method: "GET", signal: ctrl.signal });
+          const res = await fetch(url, { method: "GET", signal: ctrl.signal, headers: { Connection: "close" } });
           const text = (await res.text()).slice(0, 400);
           return Response.json({ ok: res.ok, status: res.status, body: text, ms: Date.now() - t0, url, hostOverride: !!envHost });
         } catch (e) {
