@@ -24,7 +24,7 @@ export const TEMPLATES: (() => Show)[] = [
     c("chase", 5000, 5000, { color: "#ff2a3d", speed: 1000, direction: "down", name: "Sweep down" }),
   ]),
   () => mk("tpl-wave", "Color Wave", "Colors roll gently through the stack.", [
-    c("custom", 0, 8000, { colors: ["#22e6ff", "#2f6bff", "#ff2bd6", "#2f6bff"], speed: 1500 }),
+    c("custom", 0, 9000, { colors: ["#22e6ff", "#2f6bff", "#ff2bd6", "#2f6bff"], speed: 1500 }),
   ]),
   () => mk("tpl-countdown", "Countdown", "Five tiers drain, one per second, then green.", [
     c("drain", 0, 5000, { color: "#ffe14a", direction: "down" }),
