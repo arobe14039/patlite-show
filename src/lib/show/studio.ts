@@ -81,12 +81,12 @@ export const updateClip = (id: string, patch: Partial<Clip>, history = true) =>
 export function undo() {
   const { past, show, future } = S.get();
   if (!past.length) return;
-  S.set({ show: past[past.length - 1], past: past.slice(0, -1), future: [show, ...future], dirty: true });
+  S.set({ show: past[past.length - 1]!, past: past.slice(0, -1), future: [show, ...future], dirty: true });
 }
 export function redo() {
   const { past, show, future } = S.get();
   if (!future.length) return;
-  S.set({ show: future[0], future: future.slice(1), past: [...past, show], dirty: true });
+  S.set({ show: future[0]!, future: future.slice(1), past: [...past, show], dirty: true });
 }
 
 export function addClip(effect: EffectType, start: number, tier?: number, preset?: Clip) {

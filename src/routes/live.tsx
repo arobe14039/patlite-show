@@ -31,7 +31,7 @@ function Live() {
   const settings = useDevice((s) => s.settings);
   const last = useDevice((s) => s.lastCommand);
   const live = settings.mode === "live";
-  const [tiers, setTiers] = useState<TierCmd[]>([1, 2, 3, 4, 5].map((tier) => ({ tier, state: "off", color: ["red", "amber", "lemon", "green", "blue"][tier - 1] })));
+  const [tiers, setTiers] = useState<TierCmd[]>([1, 2, 3, 4, 5].map((tier) => ({ tier, state: "off", color: ["red", "amber", "lemon", "green", "blue"][tier - 1]! })));
   const [buzzer, setBuzzer] = useState<ControlCmd["buzzer"]["pattern"]>("off");
   const [confirm, setConfirm] = useState<null | { cmd: ControlCmd; label: string }>(null);
   const [busy, setBusy] = useState(false);

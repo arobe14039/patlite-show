@@ -41,7 +41,7 @@ function Shows() {
 
   const card = (s: Show, tpl: boolean) => (
     <div key={s.id} className="flex gap-4 rounded-lg border border-border bg-panel p-4 transition-colors hover:border-muted-foreground/40">
-      <div className="flex w-10 justify-center pt-1"><EffectThumb clip={{ ...s.clips[0], duration: showDuration(s) }} /></div>
+      <div className="flex w-10 justify-center pt-1">{s.clips[0] && <EffectThumb clip={{ ...s.clips[0], duration: showDuration(s) }} />}</div>
       <div className="min-w-0 flex-1">
         {renaming === s.id ? (
           <form onSubmit={(e) => { e.preventDefault(); renameShow(s.id, name || s.name); setRenaming(null); }}>

@@ -59,4 +59,4 @@ export const TEMPLATES: (() => Show)[] = [
   ]),
 ];
 
-export const defaultShow = () => ({ ...TEMPLATES[7](), id: "draft", name: "Untitled show", description: "" });
+export const defaultShow = () => ({ ...TEMPLATES[7]!(), id: "draft", name: "Untitled show", description: "" });
