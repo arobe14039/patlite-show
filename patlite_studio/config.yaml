@@ -1,5 +1,5 @@
 name: PATLITE Light Show Studio
-version: "0.3.6"
+version: "0.3.7"
 slug: patlite_studio
 description: Design, preview and run light shows on a PATLITE LA6-POE signal tower.
 url: https://github.com/arobe14039/patlite-show

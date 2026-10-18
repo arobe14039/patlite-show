@@ -242,6 +242,7 @@ export async function runShow(show: Show, opts: { loop?: boolean } = {}): Promis
   // Never change the tower faster than once per second, whatever the saved interval says.
   const steps = compileShow(show, Math.max(TOWER_MIN_INTERVAL_MS, s.intervalMs));
   // When looping, skip the closing "all off" step so lights hold their last state into the next pass.
+  const endAt = steps[steps.length - 1]?.at ?? 0;
   if (opts.loop && steps.length > 1) steps.pop();
   const total = steps[steps.length - 1]?.at ?? 0;
   device.set({ showRunning: true, showProgress: 0 });
@@ -266,6 +267,9 @@ export async function runShow(show: Show, opts: { loop?: boolean } = {}): Promis
       return r;
     }
   }
+  // Hold the last state for its full time before the next loop pass begins.
+  const rest = endAt - (performance.now() - t0);
+  if (opts.loop && rest > 0) await sleep(rest);
   record(`Show "${show.name}" finished`, first ?? { ok: true, status: null, ms: 0 });
   device.set({ showRunning: false });
   return first ?? { ok: true, status: null, ms: 0 };
