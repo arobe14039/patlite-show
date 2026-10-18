@@ -187,6 +187,7 @@ async function sendState(state: TowerState, kind: LogEntry["kind"], label: strin
 
 // The tower has no verified flash command, so flash/pulse are made by toggling
 // the tier on and off from here. Flash = 0.5s on/off, pulse = 1s on/off.
+export const TOWER_MIN_INTERVAL_MS = 1000;
 const PATTERN_TICK_MS = TOWER_MIN_INTERVAL_MS;
 let patternToken = 0;
 
@@ -233,7 +234,6 @@ const safeState = (): TowerState => ({
 });
 
 let runToken = 0;
-export const TOWER_MIN_INTERVAL_MS = 1000;
 
 export async function runShow(show: Show): Promise<Result> {
   const token = ++runToken;
