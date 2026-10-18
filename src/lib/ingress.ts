@@ -20,9 +20,11 @@ export function withIngress(path: string): string {
 export function rewriteIngressHtml(html: string, prefix: string): string {
   const p = prefix.replace(/\/$/, "");
   if (!p) return html;
-  const out = html
-    .replace(/(["'(])\/(assets|_build|_serverFn|favicon\.ico)/g, `$1${p}/$2`)
-    .replace(/(href|src|action)="\/(?!\/)/g, `$1="${p}/`);
+  const out = html.replace(
+    /((?:href|src|action)=")\/(?!\/)|(["'(])\/(assets|_build|_serverFn|favicon\.ico)/g,
+    (_m, attr: string | undefined, q: string | undefined, dir: string | undefined) =>
+      attr ? `${attr}${p}/` : `${q}${p}/${dir}`,
+  );
   const tag = `<script>window.__INGRESS_PATH__=${JSON.stringify(p)}</script>`;
   return out.includes("<head>") ? out.replace("<head>", `<head>${tag}`) : tag + out;
 }

@@ -3,6 +3,7 @@
  * Encoding lives in ./patlite.ts; timing (show scheduling) runs here in the browser
  * with a single serialized, cancellable loop — never one request per animation frame.
  */
+import { withIngress } from "@/lib/ingress";
 import { createStore } from "../store";
 import { compileShow } from "../show/engine";
 import type { Show } from "../show/types";
