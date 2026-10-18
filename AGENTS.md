@@ -8,3 +8,8 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+## Architecture
+- Show logic lives in `src/lib/show/` (types, pure engine, templates, studio store); keep the engine pure so it stays testable and reusable by preview and hardware compile.
+- All hardware I/O goes through `src/lib/device/bridge.ts` speaking a Node-RED contract; PATLITE encodings belong in the Node-RED flow, never in UI code, because the device API is unverified.
+- Persistence is localStorage with a versioned show schema (`patlite-show` v1) so it can migrate to a database later.
