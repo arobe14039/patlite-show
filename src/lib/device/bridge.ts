@@ -38,7 +38,7 @@ export const DEFAULT_SETTINGS: DeviceSettings = {
   buzzerIntermittent: "2",
   buzzerContinuous: "1",
   timeoutMs: 3000,
-  intervalMs: 600,
+  intervalMs: 1000,
   safeState: "allOff",
   failurePolicy: "stop",
   apiVerified: false,
@@ -187,7 +187,7 @@ async function sendState(state: TowerState, kind: LogEntry["kind"], label: strin
 
 // The tower has no verified flash command, so flash/pulse are made by toggling
 // the tier on and off from here. Flash = 0.5s on/off, pulse = 1s on/off.
-const PATTERN_TICK_MS = 700;
+const PATTERN_TICK_MS = TOWER_MIN_INTERVAL_MS;
 let patternToken = 0;
 
 function controlState(cmd: ControlCmd, tick: number): TowerState {
@@ -233,12 +233,14 @@ const safeState = (): TowerState => ({
 });
 
 let runToken = 0;
+export const TOWER_MIN_INTERVAL_MS = 1000;
 
 export async function runShow(show: Show): Promise<Result> {
   const token = ++runToken;
   patternToken++;
   const s = device.get().settings;
-  const steps = compileShow(show, s.intervalMs);
+  // Never change the tower faster than once per second, whatever the saved interval says.
+  const steps = compileShow(show, Math.max(TOWER_MIN_INTERVAL_MS, s.intervalMs));
   const total = steps[steps.length - 1]?.at ?? 0;
   device.set({ showRunning: true, showProgress: 0 });
   log({ kind: "show", url: "-", summary: `Start "${show.name}" — ${steps.length} steps over ${(total / 1000).toFixed(1)}s`, status: null, ok: true, ms: null });
