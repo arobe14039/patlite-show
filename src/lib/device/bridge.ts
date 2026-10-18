@@ -123,7 +123,7 @@ async function request(kind: LogEntry["kind"], path: string, query: Record<strin
   }
 
   try {
-    const res = await fetch("/api/device", {
+    const res = await fetch(withIngress("/api/device"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ protocol: s.protocol, host: s.ip, port: s.port, path, query, timeoutMs: s.timeoutMs }),
