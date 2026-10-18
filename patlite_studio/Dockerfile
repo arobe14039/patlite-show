@@ -4,7 +4,7 @@ FROM node:22-alpine AS build
 ARG REPO_URL=https://github.com/arobe14039/patlite-show.git
 ARG REPO_REF=main
 RUN apk add --no-cache git bash curl && npm install -g bun
-# CACHEBUST changes per add-on version so a rebuild pulls fresh source.
+# Home Assistant passes BUILD_VERSION; a new version forces a fresh clone.
 ARG BUILD_VERSION=dev
 RUN echo "building ${BUILD_VERSION}" && git clone --depth 1 --branch "${REPO_REF}" "${REPO_URL}" /src
 WORKDIR /src
