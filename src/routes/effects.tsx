@@ -1,9 +1,29 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Plus, Trash2 } from "lucide-react";
+import { Play, Plus, Square, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EffectThumb } from "@/components/studio/EffectThumb";
 import { addClip, deletePreset, studio, useStudio } from "@/lib/show/studio";
-import { EFFECTS } from "@/lib/show/types";
+import { EFFECTS, SHOW_SCHEMA, SHOW_VERSION, type Clip, type EffectType } from "@/lib/show/types";
+import { makeClip } from "@/lib/show/engine";
+import { runShow, stopShow, useDevice } from "@/lib/device/bridge";
+import { useState } from "react";
+
+function playOnTower(effect: EffectType, preset?: Partial<Clip>) {
+  const { id: _id, start: _s, ...rest } = preset ?? {};
+  const clip = makeClip(effect, { ...rest, start: 0, duration: preset?.duration ?? 6000 });
+  return runShow({ schema: SHOW_SCHEMA, version: SHOW_VERSION, id: "preview", name: clip.name, description: "", clips: [clip], loop: false, updatedAt: 0 });
+}
+
+function PlayButton({ id, effect, preset }: { id: string; effect: EffectType; preset?: Partial<Clip> }) {
+  const running = useDevice((s) => s.showRunning);
+  const [mine, setMine] = useState(false);
+  const active = running && mine;
+  return active ? (
+    <Button size="sm" variant="live" onClick={() => { void stopShow(); setMine(false); }}><Square /> Stop</Button>
+  ) : (
+    <Button size="sm" variant="glow" disabled={running} aria-label={`Play ${id}`} onClick={async () => { setMine(true); await playOnTower(effect, preset); setMine(false); }}><Play /> Play</Button>
+  );
+}
 
 export const Route = createFileRoute("/effects")({
   head: () => ({
@@ -38,7 +58,7 @@ function Effects() {
               <div className="font-semibold">{e.name}</div>
               <div className="text-xs text-muted-foreground">{e.description}</div>
               <div className="mt-1 font-mono text-[10px] uppercase tracking-wider text-sim">{SOFTWARE.has(e.type) ? "Software-timed" : "Steady / native"}</div>
-              <Button size="sm" variant="panel" className="mt-2" onClick={() => { addClip(e.type, studio.get().time); nav({ to: "/" }); }}><Plus /> Add to timeline</Button>
+              <div className="mt-2 flex gap-1.5"><PlayButton id={e.type} effect={e.type} /><Button size="sm" variant="panel" onClick={() => { addClip(e.type, studio.get().time); nav({ to: "/" }); }}><Plus /> Add to timeline</Button></div>
             </div>
           </div>
         ))}
@@ -53,6 +73,7 @@ function Effects() {
                 <div className="flex-1">
                   <div className="font-semibold">{p.name}</div>
                   <div className="flex gap-1.5 pt-2">
+                    <PlayButton id={p.id} effect={p.effect} preset={p} />
                     <Button size="sm" variant="panel" onClick={() => { addClip(p.effect, studio.get().time, undefined, p); nav({ to: "/" }); }}><Plus /> Add</Button>
                     <Button size="sm" variant="ghost" className="text-destructive" onClick={() => deletePreset(p.id)}><Trash2 /></Button>
                   </div>
