@@ -1,5 +1,5 @@
 name: PATLITE Light Show Studio
-version: "0.2.1"
+version: "0.3.0"
 slug: patlite_studio
 description: Design, preview and run light shows on a PATLITE LA6-POE signal tower.
 url: https://github.com/arobe14039/patlite-show
@@ -9,11 +9,10 @@ arch:
 startup: application
 boot: auto
 init: false
-ports:
-  8099/tcp: 8099
-ports_description:
-  8099/tcp: Web interface
-webui: "http://[HOST]:[PORT:8099]"
+ingress: true
+ingress_port: 8099
+panel_icon: mdi:alarm-light
+panel_title: PATLITE Studio
 options:
   device_host: "192.168.4.26"
 schema:

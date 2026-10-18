@@ -3,6 +3,7 @@
  * Encoding lives in ./patlite.ts; timing (show scheduling) runs here in the browser
  * with a single serialized, cancellable loop — never one request per animation frame.
  */
+import { withIngress } from "@/lib/ingress";
 import { createStore } from "../store";
 import { compileShow } from "../show/engine";
 import type { Show } from "../show/types";
@@ -123,7 +124,7 @@ async function request(kind: LogEntry["kind"], path: string, query: Record<strin
   }
 
   try {
-    const res = await fetch("/api/device", {
+    const res = await fetch(withIngress("/api/device"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ protocol: s.protocol, host: s.ip, port: s.port, path, query, timeoutMs: s.timeoutMs }),

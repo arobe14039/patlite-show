@@ -1,4 +1,5 @@
 import "./lib/error-capture";
+import { rewriteIngressHtml } from "./lib/ingress";
 
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
@@ -48,8 +49,18 @@ export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
       const handler = await getServerEntry();
-      const response = await handler.fetch(request, env, ctx);
-      return await normalizeCatastrophicSsrResponse(response);
+      const response = await normalizeCatastrophicSsrResponse(
+        await handler.fetch(request, env, ctx),
+      );
+      const ingress = request.headers.get("x-ingress-path");
+      const type = response.headers.get("content-type") ?? "";
+      if (ingress && type.includes("text/html")) {
+        const html = rewriteIngressHtml(await response.text(), ingress);
+        const headers = new Headers(response.headers);
+        headers.delete("content-length");
+        return new Response(html, { status: response.status, headers });
+      }
+      return response;
     } catch (error) {
       console.error(error);
       return new Response(renderErrorPage(), {
