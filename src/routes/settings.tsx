@@ -14,9 +14,9 @@ export const Route = createFileRoute("/settings")({
   head: () => ({
     meta: [
       { title: "Device Settings — PATLITE Light Show Studio" },
-      { name: "description", content: "Configure the Node-RED bridge, test connectivity and inspect diagnostics." },
+      { name: "description", content: "Configure the PATLITE tower's HTTP commands, test connectivity and inspect diagnostics." },
       { property: "og:title", content: "Device Settings — PATLITE Light Show Studio" },
-      { property: "og:description", content: "Bridge configuration, connection test and diagnostics console." },
+      { property: "og:description", content: "Tower configuration, connection test and diagnostics console." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -46,10 +46,10 @@ function Settings() {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Device Settings</h1>
-          <p className="text-sm text-muted-foreground">Frontend → Node-RED bridge → PATLITE LA6-POE</p>
+          <p className="text-sm text-muted-foreground">App → direct HTTP → PATLITE LA6-POE</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="panel" onClick={async () => { const r = await testConnection(); r.ok ? toast.success(`Bridge reachable (${r.ms} ms)`) : toast.error(r.error); }} disabled={connection === "testing" || dirty}>
+          <Button variant="panel" onClick={async () => { const r = await testConnection(); r.ok ? toast.success(`Tower reachable (${r.ms} ms)`) : toast.error(r.error); }} disabled={connection === "testing" || dirty}>
             <Activity /> Test Connection
           </Button>
           <Button variant="glow" disabled={!dirty} onClick={() => { saveSettings(f); toast.success("Settings saved"); }}><Save /> Save</Button>
@@ -78,7 +78,7 @@ function Settings() {
             <Switch checked={f.mode === "live"} onCheckedChange={(v) => setF({ ...f, mode: v ? "live" : "mock" })} />
           </div>
           <div className="flex items-center justify-between rounded-md border border-border p-3">
-            <div><div className="text-sm font-medium">PATLITE command mapping verified</div><div className="text-xs text-muted-foreground">Tick once your Node-RED flow is checked against the LA6-POE manual.</div></div>
+            <div><div className="text-sm font-medium">PATLITE command mapping verified</div><div className="text-xs text-muted-foreground">Tick once the command settings below are checked against the LA6-POE manual.</div></div>
             <Switch checked={f.apiVerified} onCheckedChange={(v) => setF({ ...f, apiVerified: v })} />
           </div>
           <div className="grid grid-cols-2 gap-3">
@@ -102,18 +102,25 @@ function Settings() {
         </section>
 
         <section className="space-y-4 rounded-lg border border-border bg-panel p-5">
-          <div className="label-xs">Bridge & device</div>
+          <div className="label-xs">Device & commands</div>
           <div className="grid grid-cols-2 gap-3">
-            {field("bridgeUrl", "Node-RED base URL", { mono: true })}
-            {field("authToken", "Bridge auth token", { type: "password", mono: true, hint: "Sent as Bearer header. Never logged." })}
-            {field("healthPath", "Health path", { mono: true })}
-            {field("controlPath", "Control path", { mono: true })}
-            {field("showPath", "Show path", { mono: true })}
-            {field("stopPath", "Stop path", { mono: true })}
             {field("deviceName", "Device name")}
-            {field("ip", "PATLITE IP", { mono: true })}
-            {field("port", "HTTP port", { mono: true, hint: "Not 10000 — that port isn't HTTP." })}
-            {field("apiPath", "Device API path", { mono: true, hint: "Used by your Node-RED flow; verify in manual." })}
+            <div className="space-y-1.5">
+              <Label className="label-xs">Protocol</Label>
+              <Select value={f.protocol} onValueChange={(v) => setF({ ...f, protocol: v as DeviceSettings["protocol"] })}>
+                <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                <SelectContent><SelectItem value="http">HTTP</SelectItem><SelectItem value="https">HTTPS</SelectItem></SelectContent>
+              </Select>
+            </div>
+            {field("ip", "PATLITE IP", { mono: true, hint: "The Home Assistant add-on option overrides this." })}
+            {field("port", "HTTP port", { mono: true, hint: "Blank = default (80/443). Not 10000 — that isn't HTTP." })}
+            {field("apiPath", "Command path", { mono: true })}
+            {field("colorParam", "Color parameter", { mono: true, hint: "5 digits, tier 1→5" })}
+            {field("buzzerParam", "Buzzer parameter", { mono: true })}
+            {field("clearParam", "Clear parameter", { mono: true, hint: "Sent as =1 on stop" })}
+            {field("buzzerIntermittent", "Buzzer pattern: intermittent", { mono: true })}
+            {field("buzzerContinuous", "Buzzer pattern: continuous", { mono: true })}
+            {field("flashParam", "Flash parameter (optional)", { mono: true, hint: "Leave blank unless your manual documents it." })}
           </div>
         </section>
       </div>
@@ -130,8 +137,9 @@ function Settings() {
               <span className="text-muted-foreground">{new Date(l.at).toLocaleTimeString()}</span>
               <span className={l.ok ? "text-ok" : "text-destructive"}>{l.status ?? "ERR"}</span>
               <span className="text-muted-foreground">{l.ms}ms</span>
-              <span className="min-w-0">
-                <span className="text-sim">{l.method}</span> {l.url} — {l.summary}
+              <span className="min-w-0 break-all">
+                {l.summary} <span className="text-muted-foreground">· {l.url}</span>
+                {l.response && <div className="text-muted-foreground">↳ {l.response}</div>}
                 {l.error && <div className="text-destructive">{l.error}</div>}
               </span>
             </div>
@@ -140,20 +148,12 @@ function Settings() {
       </section>
 
       <section className="rounded-lg border border-border bg-panel p-5 text-sm">
-        <div className="label-xs mb-3">Expected Node-RED bridge contract</div>
-        <p className="mb-3 text-muted-foreground">Build these http-in endpoints in Node-RED (enable CORS for this site). The flow translates abstract states into verified LA6-POE commands, rate-limits, and schedules steps. All responses: <code className="text-primary">{"{ ok: boolean, error?: string, deviceStatus?: number }"}</code>.</p>
-        <pre className="overflow-auto rounded-md bg-background p-3 font-mono text-[11px] leading-relaxed text-muted-foreground">{`GET  {health}   → checks bridge (+ optionally device reachability). Must NOT change lights.
-
-POST {control}  { "type":"control",
-                  "tiers":[{"tier":1,"state":"off|on|flash|pulse","color":"red|amber|lemon|green|skyblue|blue|purple|pink|white"}],
-                  "buzzer":{"pattern":"off|intermittent|continuous"} }
-
-POST {show}     { "type":"show","schema":"patlite-show","version":1,"name":"…",
-                  "intervalMs":250,"failurePolicy":"stop|continue","safeState":"allOff|greenSteady",
-                  "steps":[{"at":0,"tiers":["red",null,null,"green",null],"buzzer":"off"}] }
-                  tiers index 0 = tier 1 (bottom); null = off. Reject if a show is already running.
-
-POST {stop}     { "type":"stop","safeState":"allOff" }  → cancel pending steps, apply safe state.`}</pre>
+        <div className="label-xs mb-3">Commands that will be sent</div>
+        <p className="mb-3 text-muted-foreground">Requests go from this app's own server to the tower, so it must run on your local network (the Home Assistant add-on). Color digits: 0 off, 1 red, 2 amber, 3 lemon, 4 green, 5 sky blue, 6 blue, 7 purple, 8 pink, 9 white — from PATLITE's published example; confirm with your manual.</p>
+        <pre className="overflow-auto rounded-md bg-background p-3 font-mono text-[11px] leading-relaxed text-muted-foreground">{`Test:  GET ${f.protocol}://${f.ip}${f.port ? ":" + f.port : ""}/      (web page only, no lights)
+Set:   GET ${f.protocol}://${f.ip}${f.port ? ":" + f.port : ""}${f.apiPath}?${f.colorParam}=46091&${f.buzzerParam}=0${f.flashParam ? "&" + f.flashParam + "=0" : ""}
+       (tier1 green, tier2 blue, tier3 off, tier4 white, tier5 red)
+Stop:  GET ${f.protocol}://${f.ip}${f.port ? ":" + f.port : ""}${f.apiPath}?${f.clearParam}=1`}</pre>
       </section>
     </div>
   );

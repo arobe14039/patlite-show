@@ -1,0 +1,20 @@
+name: PATLITE Light Show Studio
+version: "0.2.0"
+slug: patlite_studio
+description: Design, preview and run light shows on a PATLITE LA6-POE signal tower.
+url: https://github.com/REPLACE_ME/REPLACE_ME
+arch:
+  - amd64
+  - aarch64
+startup: application
+boot: auto
+init: false
+ports:
+  8099/tcp: 8099
+ports_description:
+  8099/tcp: Web interface
+webui: "http://[HOST]:[PORT:8099]"
+options:
+  device_host: "192.168.4.26"
+schema:
+  device_host: str

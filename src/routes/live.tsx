@@ -55,7 +55,7 @@ function Live() {
       <div className={cn("flex flex-wrap items-center gap-4 rounded-lg border p-4", live ? "border-live/60 bg-live/10" : "border-sim/40 bg-sim/10")}>
         <div className="flex-1">
           <div className={cn("font-mono text-xs font-bold uppercase tracking-widest", live ? "text-live" : "text-sim")}>{live ? "Live mode — commands reach the physical tower" : "Mock mode — nothing is sent to hardware"}</div>
-          <p className="mt-1 text-sm text-muted-foreground">{live ? `Via Node-RED at ${settings.bridgeUrl} → ${settings.ip}` : "Commands go to the built-in mock adapter so you can test safely."}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{live ? `Direct HTTP to ${settings.ip}${settings.port ? `:${settings.port}` : ""}${settings.apiPath}` : "Commands go to the built-in mock adapter so you can test safely."}</p>
         </div>
         <Button variant={live ? "panel" : "live"} onClick={() => saveSettings({ mode: live ? "mock" : "live" })}>{live ? "Switch to mock" : "Switch to live"}</Button>
         <Button variant="destructive" size="lg" onClick={async () => { stop(); const r = await stopShow(); r.ok ? toast.success("Emergency stop sent") : toast.error(`Stop failed: ${r.error}`); }}>
@@ -108,11 +108,11 @@ function Live() {
               <div className="space-y-1">
                 <div className="font-medium">{last.label}</div>
                 <div className="font-mono text-xs text-muted-foreground">{new Date(last.at).toLocaleTimeString()} · {last.mock ? "mock" : "live"}</div>
-                <div className={cn("font-mono text-xs", last.ok ? "text-ok" : "text-destructive")}>{last.ok ? `Accepted by bridge · HTTP ${last.status}` : `Failed · ${last.status ?? "no response"}`}</div>
+                <div className={cn("font-mono text-xs", last.ok ? "text-ok" : "text-destructive")}>{last.ok ? `Accepted by tower · HTTP ${last.status}` : `Failed · ${last.status ?? "no response"}`}</div>
                 {last.error && <div className="rounded border border-destructive/40 bg-destructive/10 p-2 text-xs text-destructive">{last.error}</div>}
                 <p className="pt-1 text-[11px] text-muted-foreground">The tower doesn't report state back; this is the last accepted command, not confirmed device state.</p>
               </div>
-            ) : <p className="text-xs text-muted-foreground">Nothing sent yet. <Link to="/settings" className="text-primary underline">Test the bridge</Link> first.</p>}
+            ) : <p className="text-xs text-muted-foreground">Nothing sent yet. <Link to="/settings" className="text-primary underline">Test the connection</Link> first.</p>}
           </div>
         </div>
       </div>
