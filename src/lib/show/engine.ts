@@ -73,7 +73,7 @@ export function evalClip(c: Clip, t: number, tier: number): TierState {
       s = step % n === idx ? on(c.color) : OFF;
       break;
     case "rainbow":
-      s = on(PALETTE[(step + idx) % 7].hex);
+      s = on(PALETTE[(step + idx) % 7]!.hex);
       break;
     case "fill":
       s = idx < Math.floor((t / c.duration) * n) + 1 ? on(c.color) : OFF;
@@ -89,7 +89,7 @@ export function evalClip(c: Clip, t: number, tier: number): TierState {
       break;
     case "custom": {
       const cols = c.colors.length ? c.colors : [c.color];
-      s = on(cols[(step + idx) % cols.length]);
+      s = on(cols[(step + idx) % cols.length]!);
       break;
     }
     default:
@@ -131,7 +131,8 @@ export function frameAt(show: Show, t: number, base?: TierState[]): Frame {
   let buzzer: Frame["buzzer"] = "off";
   for (const c of show.clips) {
     if (t < c.start || t >= c.start + c.duration) continue;
-    if (c.buzzer !== "off") buzzer = c.buzzer === "continuous" || buzzer === "continuous" ? "continuous" : "intermittent";
+    if (c.buzzer === "continuous") buzzer = "continuous";
+    else if (c.buzzer === "intermittent" && buzzer === "off") buzzer = "intermittent";
   }
   return { tiers, buzzer };
 }
@@ -141,7 +142,7 @@ export function findConflicts(clips: Clip[]): Set<string> {
   const out = new Set<string>();
   for (let i = 0; i < clips.length; i++)
     for (let j = i + 1; j < clips.length; j++) {
-      const a = clips[i], b = clips[j];
+      const a = clips[i]!, b = clips[j]!;
       if (a.effect === "buzzer" || b.effect === "buzzer") continue;
       const overlap = a.start < b.start + b.duration && b.start < a.start + a.duration;
       if (!overlap) continue;
@@ -167,10 +168,10 @@ export const LA6_COLORS: { name: string; hex: string }[] = [
   { name: "white", hex: "#ffffff" },
 ];
 
-const rgb = (h: string) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+const rgb = (h: string): [number, number, number] => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
 export function nearestHwColor(hex: string): string {
   const [r, g, b] = rgb(hex);
-  let best = LA6_COLORS[0], bd = Infinity;
+  let best = LA6_COLORS[0]!, bd = Infinity;
   for (const c of LA6_COLORS) {
     const [R, G, B] = rgb(c.hex);
     const d = (r - R) ** 2 + (g - G) ** 2 + (b - B) ** 2;
