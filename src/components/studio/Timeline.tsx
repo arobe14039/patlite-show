@@ -9,7 +9,7 @@ import {
 import type { Clip } from "@/lib/show/types";
 import { cn } from "@/lib/utils";
 
-const TRACKS: (number | "buzzer")[] = [5, 4, 3, 2, 1, "buzzer"];
+const TRACKS: (number | "buzzer")[] = [1, 2, 3, 4, 5, "buzzer"];
 const LABEL_W = 76;
 const ROW_H = 34;
 const GRID = 100;

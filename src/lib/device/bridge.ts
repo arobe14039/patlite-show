@@ -35,8 +35,8 @@ export const DEFAULT_SETTINGS: DeviceSettings = {
   buzzerParam: "buzzer",
   flashParam: "",
   clearParam: "clear",
-  buzzerIntermittent: "1",
-  buzzerContinuous: "2",
+  buzzerIntermittent: "2",
+  buzzerContinuous: "1",
   timeoutMs: 3000,
   intervalMs: 300,
   safeState: "allOff",
@@ -91,7 +91,15 @@ export function hydrateDevice() {
   hydrated = true;
   try {
     const s = JSON.parse(localStorage.getItem(LS) || "null");
-    if (s) device.set({ settings: { ...DEFAULT_SETTINGS, ...s } });
+    if (s) {
+      // v0.3: the tower's buzzer numbers were the other way round; swap saved values once.
+      if (!s.buzzerFixed) {
+        [s.buzzerIntermittent, s.buzzerContinuous] = [s.buzzerContinuous ?? "2", s.buzzerIntermittent ?? "1"];
+        s.buzzerFixed = true;
+        localStorage.setItem(LS, JSON.stringify(s));
+      }
+      device.set({ settings: { ...DEFAULT_SETTINGS, ...s } });
+    }
   } catch { /* ignore */ }
 }
 export function saveSettings(patch: Partial<DeviceSettings>) {
@@ -162,17 +170,39 @@ async function sendState(state: TowerState, kind: LogEntry["kind"], label: strin
   return request(kind, s.apiPath, encodeState(s, state), label);
 }
 
-export async function sendControl(cmd: ControlCmd, label: string) {
-  const state: TowerState = {
+// The tower has no verified flash command, so flash/pulse are made by toggling
+// the tier on and off from here. Flash = 0.5s on/off, pulse = 1s on/off.
+const PATTERN_TICK_MS = 500;
+let patternToken = 0;
+
+function controlState(cmd: ControlCmd, tick: number): TowerState {
+  return {
     tiers: [1, 2, 3, 4, 5].map((t) => {
       const c = cmd.tiers.find((x) => x.tier === t);
-      return c && c.state !== "off" ? c.color : null;
+      if (!c || c.state === "off") return null;
+      if (c.state === "flash" && tick % 2 === 1) return null;
+      if (c.state === "pulse" && Math.floor(tick / 2) % 2 === 1) return null;
+      return c.color;
     }),
-    flash: cmd.tiers.some((t) => t.state === "flash"),
+    flash: false,
     buzzer: cmd.buzzer.pattern,
   };
-  const r = await sendState(state, "control", label);
+}
+
+export async function sendControl(cmd: ControlCmd, label: string) {
+  const token = ++patternToken;
+  const r = await sendState(controlState(cmd, 0), "control", label);
   record(label, r);
+  if (r.ok && cmd.tiers.some((t) => t.state === "flash" || t.state === "pulse")) {
+    void (async () => {
+      for (let tick = 1; ; tick++) {
+        await sleep(PATTERN_TICK_MS);
+        if (token !== patternToken) return;
+        const res = await sendState(controlState(cmd, tick), "control", `${label} (pattern)`);
+        if (!res.ok) return;
+      }
+    })();
+  }
   return r;
 }
 
@@ -191,6 +221,7 @@ let runToken = 0;
 
 export async function runShow(show: Show): Promise<Result> {
   const token = ++runToken;
+  patternToken++;
   const s = device.get().settings;
   const steps = compileShow(show, s.intervalMs);
   const total = steps[steps.length - 1]?.at ?? 0;
@@ -221,6 +252,7 @@ export async function runShow(show: Show): Promise<Result> {
 /** Cancels any pending steps immediately, then applies the safe state. */
 export async function stopShow() {
   runToken++;
+  patternToken++;
   device.set({ showRunning: false });
   const s = device.get().settings;
   const r = s.safeState === "allOff"
