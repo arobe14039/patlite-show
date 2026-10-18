@@ -68,9 +68,9 @@ function TopBar() {
   const startLive = async () => {
     setConfirmLive(false);
     stop(); play();
+    toast.message("Show running on tower");
     const r = await runShow(studio.get().show);
-    if (!r.ok) { pause(); toast.error(`Show not started on tower: ${r.error}`); }
-    else toast.success("Bridge accepted the show");
+    if (!r.ok) { pause(); toast.error(`Tower command failed: ${r.error}`); }
   };
   const halt = async () => {
     stop();
@@ -98,7 +98,7 @@ function TopBar() {
         </span>
         <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <Circle className={cn("size-2 fill-current", connection === "ok" ? "text-ok" : connection === "error" ? "text-destructive" : connection === "testing" ? "text-warn" : "text-muted-foreground")} />
-          {connection === "ok" ? "Bridge connected" : connection === "error" ? "Bridge error" : connection === "testing" ? "Testing…" : "Not tested"}
+          {connection === "ok" ? "Tower reachable" : connection === "error" ? "Tower unreachable" : connection === "testing" ? "Testing…" : "Not tested"}
         </span>
         <span className="font-mono text-xs text-muted-foreground">{settings.ip}</span>
       </div>
@@ -119,7 +119,7 @@ function TopBar() {
           <DialogHeader>
             <DialogTitle>Run "{name}" on the physical tower?</DialogTitle>
             <DialogDescription>
-              The show will be sent to the Node-RED bridge at {settings.bridgeUrl} and executed on {settings.deviceName}. Fast effects may look different on hardware due to network latency.
+              Commands will be sent step by step to {settings.deviceName} at {settings.ip}. Keep this page open while it runs. Fast effects may look different on hardware due to network latency.
             </DialogDescription>
           </DialogHeader>
           {!settings.apiVerified && <p className="rounded-md border border-warn/40 bg-warn/10 p-3 text-xs text-warn">The PATLITE command mapping is not marked as verified in Device Settings.</p>}

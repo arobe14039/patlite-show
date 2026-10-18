@@ -14,6 +14,7 @@ import { Route as EffectsRouteImport } from './routes/effects'
 import { Route as LiveRouteImport } from './routes/live'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ShowsRouteImport } from './routes/shows'
+import { Route as ApiDeviceRouteImport } from './routes/api/device'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -40,6 +41,11 @@ const ShowsRoute = ShowsRouteImport.update({
   path: '/shows',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiDeviceRoute = ApiDeviceRouteImport.update({
+  id: '/api/device',
+  path: '/api/device',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -47,6 +53,7 @@ export interface FileRoutesByFullPath {
   '/live': typeof LiveRoute
   '/settings': typeof SettingsRoute
   '/shows': typeof ShowsRoute
+  '/api/device': typeof ApiDeviceRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -54,6 +61,7 @@ export interface FileRoutesByTo {
   '/live': typeof LiveRoute
   '/settings': typeof SettingsRoute
   '/shows': typeof ShowsRoute
+  '/api/device': typeof ApiDeviceRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,13 +70,21 @@ export interface FileRoutesById {
   '/live': typeof LiveRoute
   '/settings': typeof SettingsRoute
   '/shows': typeof ShowsRoute
+  '/api/device': typeof ApiDeviceRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/effects' | '/live' | '/settings' | '/shows'
+  fullPaths: '/' | '/effects' | '/live' | '/settings' | '/shows' | '/api/device'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/effects' | '/live' | '/settings' | '/shows'
-  id: '__root__' | '/' | '/effects' | '/live' | '/settings' | '/shows'
+  to: '/' | '/effects' | '/live' | '/settings' | '/shows' | '/api/device'
+  id:
+    | '__root__'
+    | '/'
+    | '/effects'
+    | '/live'
+    | '/settings'
+    | '/shows'
+    | '/api/device'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -77,6 +93,7 @@ export interface RootRouteChildren {
   LiveRoute: typeof LiveRoute
   SettingsRoute: typeof SettingsRoute
   ShowsRoute: typeof ShowsRoute
+  ApiDeviceRoute: typeof ApiDeviceRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -116,6 +133,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShowsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/device': {
+      id: '/api/device'
+      path: '/api/device'
+      fullPath: '/api/device'
+      preLoaderRoute: typeof ApiDeviceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -125,6 +149,7 @@ const rootRouteChildren: RootRouteChildren = {
   LiveRoute: LiveRoute,
   SettingsRoute: SettingsRoute,
   ShowsRoute: ShowsRoute,
+  ApiDeviceRoute: ApiDeviceRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
