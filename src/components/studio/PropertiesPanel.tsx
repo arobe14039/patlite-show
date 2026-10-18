@@ -31,7 +31,7 @@ export function PropertiesPanel() {
 function TierProps() {
   const sel = useStudio((s) => s.selectedTiers);
   const base = useStudio((s) => s.base);
-  const first = base[(sel[0] ?? 1) - 1];
+  const first = base[(sel[0] ?? 1) - 1]!;
   return (
     <div className="space-y-5 p-4">
       <div>
@@ -51,7 +51,7 @@ function TierProps() {
             <ColorPalette value={first.color} onChange={(color) => setBaseTiers(sel, { color, on: true })} />
           </Row>
           <Row label={`Glow intensity ${Math.round(first.intensity * 100)}%`}>
-            <Slider value={[first.intensity * 100]} min={5} max={100} onValueChange={([v]) => setBaseTiers(sel, { intensity: v / 100 })} />
+            <Slider value={[first.intensity * 100]} min={5} max={100} onValueChange={([v]) => setBaseTiers(sel, { intensity: (v ?? 100) / 100 })} />
           </Row>
           <Button variant="panel" size="sm" onClick={() => setBaseTiers(sel, { on: false })}>Turn selected off</Button>
         </>
@@ -124,7 +124,7 @@ function ClipProps({ clip, multi }: { clip: Clip; multi: number }) {
 
       {p.speed && (
         <Row label={`Interval ${clip.speed} ms`}>
-          <Slider value={[clip.speed]} min={50} max={2000} step={10} onValueChange={([v]) => set({ speed: v })} />
+          <Slider value={[clip.speed]} min={50} max={2000} step={10} onValueChange={([v]) => set({ speed: v ?? 250 })} />
           {clip.speed < studioInterval() && <p className="text-[11px] text-warn">Faster than the hardware command interval — the physical tower may look different.</p>}
         </Row>
       )}

@@ -58,7 +58,7 @@ export interface LogEntry {
   status: number | null;
   ok: boolean;
   ms: number | null;
-  error?: string;
+  error?: string | undefined;
 }
 
 export type TierCmd = { tier: number; state: "off" | "on" | "flash" | "pulse"; color: string };
@@ -71,7 +71,7 @@ interface DeviceState {
   settings: DeviceSettings;
   connection: "unknown" | "ok" | "error" | "testing";
   lastResponseMs: number | null;
-  lastCommand: { label: string; at: number; ok: boolean; status: number | null; error?: string; mock: boolean } | null;
+  lastCommand: { label: string; at: number; ok: boolean; status: number | null; error?: string | undefined; mock: boolean } | null;
   log: LogEntry[];
   showRunning: boolean;
   showProgress: number;
@@ -112,7 +112,7 @@ export const clearLog = () => device.set({ log: [] });
 
 const join = (base: string, path: string) => base.replace(/\/+$/, "") + "/" + path.replace(/^\/+/, "");
 
-interface Result { ok: boolean; status: number | null; ms: number; body?: unknown; error?: string }
+interface Result { ok: boolean; status: number | null; ms: number; body?: unknown; error?: string | undefined }
 
 async function request(kind: LogEntry["kind"], method: "GET" | "POST", path: string, summary: string, body?: unknown): Promise<Result> {
   const s = device.get().settings;
@@ -136,7 +136,7 @@ async function request(kind: LogEntry["kind"], method: "GET" | "POST", path: str
         ...(body ? { "Content-Type": "application/json" } : {}),
         ...(s.authToken ? { Authorization: `Bearer ${s.authToken}` } : {}),
       },
-      body: body ? JSON.stringify(body) : undefined,
+      body: body ? JSON.stringify(body) : null,
     });
     const ms = Math.round(performance.now() - t0);
     let parsed: unknown = null;
